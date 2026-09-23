@@ -1,0 +1,8 @@
+node_modules/
+.next/
+checkin-app/node_modules/
+checkin-app/.next/
+checkin-app/prisma/dev.db
+checkin-app/prisma/dev.db-journal
+.env
+.env.local

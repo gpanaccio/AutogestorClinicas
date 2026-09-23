@@ -1,0 +1,30 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Paciente {
+  id        String    @id @default(cuid())
+  dni       String    @unique
+  nombre    String
+  apellido  String
+  creadoEn  DateTime  @default(now())
+  checkIns  CheckIn[]
+}
+
+model CheckIn {
+  id             String   @id @default(cuid())
+  pacienteId     String
+  paciente       Paciente @relation(fields: [pacienteId], references: [id])
+  fechaHora      DateTime @default(now())
+  fotoDataUrl    String
+  estado         String   @default("en_espera")
+  codigoTurno    String
+  salaEspera     String
+  centroId       String   @default("centro-medico")
+  hisNotificado  Boolean  @default(false)
+}
