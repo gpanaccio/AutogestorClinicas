@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { formatDni } from "@/lib/dni";
+import { startOfTodayArgentina } from "@/lib/timezone";
 
 export async function GET() {
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
+  const startOfDay = startOfTodayArgentina();
 
   const rows = await prisma.checkIn.findMany({
     where: { fechaHora: { gte: startOfDay } },

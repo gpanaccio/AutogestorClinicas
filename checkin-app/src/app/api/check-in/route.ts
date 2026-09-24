@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isValidDni, onlyDigits } from "@/lib/dni";
 import { notificarHis } from "@/lib/his";
+import { startOfTodayArgentina } from "@/lib/timezone";
 
 type Body = {
   nombre?: string;
@@ -38,8 +39,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "La foto es demasiado pesada." }, { status: 400 });
   }
 
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
+  const startOfDay = startOfTodayArgentina();
 
   const turnosHoy = await prisma.checkIn.count({
     where: { fechaHora: { gte: startOfDay } },

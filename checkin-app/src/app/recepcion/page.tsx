@@ -83,6 +83,7 @@ export default function RecepcionPage() {
                   </p>
                   <p className="text-xs text-slate-400">
                     {new Date(item.fechaHora).toLocaleTimeString("es-AR", {
+                      timeZone: "America/Argentina/Buenos_Aires",
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
