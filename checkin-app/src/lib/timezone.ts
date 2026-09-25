@@ -11,3 +11,11 @@ export function startOfTodayArgentina(now = new Date()) {
 
   return new Date(`${ymd}T00:00:00-03:00`);
 }
+
+export function formatFechaHoraArgentina(value: Date | string) {
+  return new Intl.DateTimeFormat("es-AR", {
+    timeZone: ARGENTINA_TZ,
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
