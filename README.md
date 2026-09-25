@@ -15,7 +15,7 @@ Cada push a `main` en GitHub ([gpanaccio/AutogestorClinicas](https://github.com/
 
 ## Flujo
 
-1. **Bienvenida** (`/`): nombre, apellido, DNI (formato `42.137.994`) y consentimiento de datos. Se rechazan nombres con insultos.
+1. **Bienvenida** (`/`): nombre, apellido, DNI (formato `38.450.123`) y consentimiento de datos. Se rechazan nombres con insultos.
 2. **Captura** (`/captura`): la cámara frontal valida que haya un solo rostro centrado y toma la foto.
 3. **Pase** (`/pase/[id]`): número de turno (`A-1`, `A-2`…), sala de espera asignada y comprobante en PDF.
 4. **Recepción** (`/recepcion`): cola del día con los estados *En espera → Llamado → En atención → Atendido*.
