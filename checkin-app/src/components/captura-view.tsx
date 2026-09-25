@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { loadFiliacion } from "@/lib/filiacion";
 import { captureAndCompress, measureBrightness } from "@/lib/image";
+import { evaluateFace, getFaceDetector } from "@/lib/face";
 import { PhoneShell, PrimaryButton } from "@/components/phone-shell";
 
 export function CapturaView() {
@@ -12,8 +13,11 @@ export function CapturaView() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const probeRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const lastTsRef = useRef(0);
   const [listo, setListo] = useState(false);
   const [buenaLuz, setBuenaLuz] = useState(false);
+  const [faceOk, setFaceOk] = useState(false);
+  const [faceMessage, setFaceMessage] = useState("Buscando rostro...");
   const [error, setError] = useState("");
   const [enviando, setEnviando] = useState(false);
 
@@ -29,10 +33,13 @@ export function CapturaView() {
 
     async function startCamera() {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user", width: { ideal: 720 }, height: { ideal: 960 } },
-          audio: false,
-        });
+        const [stream] = await Promise.all([
+          navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "user", width: { ideal: 720 }, height: { ideal: 960 } },
+            audio: false,
+          }),
+          getFaceDetector(),
+        ]);
         if (cancelled) {
           stream.getTracks().forEach((track) => track.stop());
           return;
@@ -43,19 +50,37 @@ export function CapturaView() {
           await videoRef.current.play();
           setListo(true);
         }
+
+        const detector = await getFaceDetector();
         interval = window.setInterval(() => {
           const video = videoRef.current;
           const probe = probeRef.current;
           if (!video || !probe || video.readyState < 2) return;
+
           probe.width = 80;
           probe.height = 80;
           const ctx = probe.getContext("2d");
-          if (!ctx) return;
-          ctx.drawImage(video, 0, 0, 80, 80);
-          setBuenaLuz(measureBrightness(probe) > 70);
-        }, 500);
+          if (ctx) {
+            ctx.drawImage(video, 0, 0, 80, 80);
+            setBuenaLuz(measureBrightness(probe) > 70);
+          }
+
+          try {
+            let ts = performance.now();
+            if (ts <= lastTsRef.current) ts = lastTsRef.current + 1;
+            lastTsRef.current = ts;
+            const result = detector.detectForVideo(video, ts);
+            const check = evaluateFace(result.detections, video.videoWidth, video.videoHeight);
+            setFaceOk(check.ok);
+            setFaceMessage(check.message);
+          } catch {
+            /* frame skip */
+          }
+        }, 280);
       } catch {
-        setError("No pudimos acceder a la cámara. Habilitá el permiso e intentá de nuevo.");
+        setError(
+          "No pudimos iniciar la cámara o el validador de rostro. Revisá el permiso de cámara e internet.",
+        );
       }
     }
 
@@ -72,6 +97,25 @@ export function CapturaView() {
     const filiacion = loadFiliacion();
     const video = videoRef.current;
     if (!filiacion || !video) return;
+
+    try {
+      const detector = await getFaceDetector();
+      let ts = performance.now();
+      if (ts <= lastTsRef.current) ts = lastTsRef.current + 1;
+      lastTsRef.current = ts;
+      const result = detector.detectForVideo(video, ts);
+      const check = evaluateFace(result.detections, video.videoWidth, video.videoHeight);
+      if (!check.ok) {
+        setFaceOk(false);
+        setFaceMessage(check.message);
+        setError("No se registró: " + check.message.toLowerCase() + ".");
+        return;
+      }
+    } catch {
+      setError("No se pudo validar el rostro. Intentá de nuevo.");
+      return;
+    }
+
     setEnviando(true);
     setError("");
     try {
@@ -97,6 +141,11 @@ export function CapturaView() {
     }
   }
 
+  const puedeRegistrar = listo && faceOk && !enviando;
+  const ovalClass = faceOk
+    ? "h-[78%] w-[72%] rounded-[50%] border-2 border-dashed border-emerald-400"
+    : "h-[78%] w-[72%] rounded-[50%] border-2 border-dashed border-sky-400/90";
+
   return (
     <PhoneShell>
       <div className="flex flex-1 flex-col px-5 pb-6 pt-5">
@@ -121,10 +170,16 @@ export function CapturaView() {
             className="h-full w-full scale-x-[-1] object-cover"
           />
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="h-[78%] w-[72%] rounded-[50%] border-2 border-dashed border-sky-400/90" />
+            <div className={ovalClass} />
           </div>
-          <div className="absolute bottom-4 left-1/2 w-max -translate-x-1/2 rounded-full bg-black/45 px-3 py-1 text-xs font-medium text-white">
-            {buenaLuz ? "✦ Buena iluminación detectada" : "Buscá un lugar con más luz"}
+          <div className="absolute bottom-4 left-1/2 flex w-max max-w-[90%] -translate-x-1/2 flex-col items-center gap-1">
+            <span className="rounded-full bg-black/45 px-3 py-1 text-center text-xs font-medium text-white">
+              {faceOk ? "✓ " : ""}
+              {faceMessage}
+            </span>
+            <span className="rounded-full bg-black/45 px-3 py-1 text-xs font-medium text-white">
+              {buenaLuz ? "✦ Buena iluminación detectada" : "Buscá un lugar con más luz"}
+            </span>
           </div>
         </div>
         <canvas ref={probeRef} className="hidden" />
@@ -132,8 +187,14 @@ export function CapturaView() {
         {error ? <p className="mt-4 text-center text-sm text-red-600">{error}</p> : null}
 
         <div className="mt-auto pt-6">
-          <PrimaryButton disabled={!listo || enviando} onClick={() => void registrar()}>
-            {enviando ? "Registrando..." : "📸 Tomar Foto y Registrar"}
+          <PrimaryButton disabled={!puedeRegistrar} onClick={() => void registrar()}>
+            {enviando
+              ? "Registrando..."
+              : !listo
+                ? "Preparando validador..."
+                : !faceOk
+                  ? "Esperando un rostro..."
+                  : "📸 Tomar Foto y Registrar"}
           </PrimaryButton>
         </div>
       </div>
