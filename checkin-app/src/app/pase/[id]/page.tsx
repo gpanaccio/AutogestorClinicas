@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { descifrar, descifrarPaciente } from "@/lib/cifrado";
 import { formatDni } from "@/lib/dni";
 import { getCentroNombre } from "@/lib/app-url";
 import { PhoneShell } from "@/components/phone-shell";
@@ -21,7 +22,10 @@ export default async function PasePage({
 
   if (!checkIn) notFound();
 
-  const nombreCompleto = `${checkIn.paciente.nombre} ${checkIn.paciente.apellido}`;
+  const paciente = descifrarPaciente(checkIn.paciente);
+  const fotoDataUrl = descifrar(checkIn.fotoDataUrl);
+  const nombreCompleto = `${paciente.nombre} ${paciente.apellido}`;
+  const dni = formatDni(paciente.dni);
 
   return (
     <PhoneShell>
@@ -39,13 +43,13 @@ export default async function PasePage({
         <div className="mt-8 flex items-center gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={checkIn.fotoDataUrl}
+            src={fotoDataUrl}
             alt={nombreCompleto}
             className="h-14 w-14 rounded-full object-cover"
           />
           <div>
             <p className="font-semibold text-slate-900">{nombreCompleto}</p>
-            <p className="text-sm text-slate-500">DNI: {formatDni(checkIn.paciente.dni)}</p>
+            <p className="text-sm text-slate-500">DNI: {dni}</p>
           </div>
         </div>
 
@@ -67,11 +71,11 @@ export default async function PasePage({
           <DownloadComprobanteButton
             centro={getCentroNombre()}
             nombre={nombreCompleto}
-            dni={formatDni(checkIn.paciente.dni)}
+            dni={dni}
             codigoTurno={checkIn.codigoTurno}
             salaEspera={checkIn.salaEspera}
             fechaHora={checkIn.fechaHora.toISOString()}
-            fotoDataUrl={checkIn.fotoDataUrl}
+            fotoDataUrl={fotoDataUrl}
           />
           <FinishButton />
         </div>

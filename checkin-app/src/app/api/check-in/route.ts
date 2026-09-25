@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { cifrar, descifrar, descifrarPaciente } from "@/lib/cifrado";
 import { isValidDni, onlyDigits } from "@/lib/dni";
 import { contieneInsulto, listarPalabrasProhibidas, MENSAJE_INSULTO } from "@/lib/lenguaje";
 import { notificarHis } from "@/lib/his";
+import { upsertPacienteCifrado } from "@/lib/paciente";
 import { startOfTodayArgentina } from "@/lib/timezone";
 
 type Body = {
@@ -52,20 +54,17 @@ export async function POST(request: Request) {
   const codigoTurno = `A-${turnosHoy + 1}`;
   const salaEspera = turnosHoy % 2 === 0 ? "Sala de Espera 2" : "Sala de Espera 1";
 
-  const paciente = await prisma.paciente.upsert({
-    where: { dni },
-    create: { dni, nombre, apellido },
-    update: { nombre, apellido },
-  });
+  const paciente = descifrarPaciente(
+    await upsertPacienteCifrado({ dni, nombre, apellido }),
+  );
 
   const checkIn = await prisma.checkIn.create({
     data: {
       pacienteId: paciente.id,
-      fotoDataUrl,
+      fotoDataUrl: cifrar(fotoDataUrl),
       codigoTurno,
       salaEspera,
     },
-    include: { paciente: true },
   });
 
   void notificarHis({
@@ -87,6 +86,6 @@ export async function POST(request: Request) {
     nombre: paciente.nombre,
     apellido: paciente.apellido,
     dni: paciente.dni,
-    fotoDataUrl: checkIn.fotoDataUrl,
+    fotoDataUrl: descifrar(checkIn.fotoDataUrl),
   });
 }

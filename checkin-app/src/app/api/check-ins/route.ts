@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { descifrar, descifrarPaciente } from "@/lib/cifrado";
 import { formatDni } from "@/lib/dni";
 import { startOfTodayArgentina } from "@/lib/timezone";
 
@@ -13,17 +14,20 @@ export async function GET() {
   });
 
   return NextResponse.json(
-    rows.map((row) => ({
-      id: row.id,
-      codigoTurno: row.codigoTurno,
-      salaEspera: row.salaEspera,
-      estado: row.estado,
-      fechaHora: row.fechaHora,
-      hisNotificado: row.hisNotificado,
-      nombre: row.paciente.nombre,
-      apellido: row.paciente.apellido,
-      dni: formatDni(row.paciente.dni),
-      fotoDataUrl: row.fotoDataUrl,
-    })),
+    rows.map((row) => {
+      const paciente = descifrarPaciente(row.paciente);
+      return {
+        id: row.id,
+        codigoTurno: row.codigoTurno,
+        salaEspera: row.salaEspera,
+        estado: row.estado,
+        fechaHora: row.fechaHora,
+        hisNotificado: row.hisNotificado,
+        nombre: paciente.nombre,
+        apellido: paciente.apellido,
+        dni: formatDni(paciente.dni),
+        fotoDataUrl: descifrar(row.fotoDataUrl),
+      };
+    }),
   );
 }

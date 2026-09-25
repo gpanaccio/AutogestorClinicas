@@ -38,9 +38,12 @@ No hace falta cuenta de Neon. Usás **GitHub** (ya está) y **Vercel** (gratis, 
    - `DATABASE_URL` = el mismo valor que `POSTGRES_URL`
    - `NEXT_PUBLIC_CENTRO_NOMBRE` = `Centro Médico`
    - `RECEPCION_PIN` = PIN de 4 dígitos para `/recepcion` (ej. `2580`)
+   - `ENCRYPTION_KEY` = secreto largo y aleatorio para cifrar datos del paciente en la base (no lo cambies después si ya hay registros)
 6. Deploy. Cuando tengas la URL (`https://algo.vercel.app`), agregá `NEXT_PUBLIC_APP_URL` con esa URL y redesplegá para que el QR apunte bien.
 
 En local seguís con SQLite (`npm run dev`). En Vercel el build usa `schema.prod.prisma` (PostgreSQL) solo.
+
+Nombre, apellido, DNI y foto se guardan cifrados (AES-256-GCM) con `ENCRYPTION_KEY`. La app los descifra al mostrarlos en recepción, sala y comprobante. Los registros anteriores en claro se leen igual y se cifran la próxima vez que ese paciente haga check-in.
 
 La foto se comprime a WebP (~800px) en el navegador. En el MVP se guarda como data URL en la base (archivos chicos). Para un volumen real, conviene S3/Cloudinary y guardar solo la URI.
 

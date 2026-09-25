@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { descifrar, descifrarPaciente } from "@/lib/cifrado";
 import { isEstadoCola, puedeTransicionar } from "@/lib/cola";
 import { formatDni } from "@/lib/dni";
 import { haySesionRecepcion } from "@/lib/recepcion-auth";
@@ -37,6 +38,8 @@ export async function PATCH(
     include: { paciente: true },
   });
 
+  const paciente = descifrarPaciente(updated.paciente);
+
   return NextResponse.json({
     id: updated.id,
     codigoTurno: updated.codigoTurno,
@@ -44,9 +47,9 @@ export async function PATCH(
     estado: updated.estado,
     fechaHora: updated.fechaHora,
     hisNotificado: updated.hisNotificado,
-    nombre: updated.paciente.nombre,
-    apellido: updated.paciente.apellido,
-    dni: formatDni(updated.paciente.dni),
-    fotoDataUrl: updated.fotoDataUrl,
+    nombre: paciente.nombre,
+    apellido: paciente.apellido,
+    dni: formatDni(paciente.dni),
+    fotoDataUrl: descifrar(updated.fotoDataUrl),
   });
 }
