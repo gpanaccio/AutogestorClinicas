@@ -153,6 +153,19 @@ next build
 
 No hay migraciones: `db push` sincroniza la base con el schema. Si cambiás un modelo, actualizá **los dos** schemas (`schema.prisma` y `schema.prod.prisma`).
 
+## Cobertura de tests
+
+La lógica de `src/lib` tiene una suite (`npm test`) y un reporte formal antes/después en [checkin-app/docs/reporte-coverage.md](checkin-app/docs/reporte-coverage.md).
+
+| | Antes | Después |
+| --- | --- | --- |
+| Tests | 0 | 21 en verde |
+| Líneas | 0% | 84,54% |
+| Ramas | 0% | 97,54% |
+| Funciones | 0% | 81,82% |
+
+El 0% de antes es la corrida de la misma herramienta sin tests. Node imprime 100% en ese caso porque no cargó ningún archivo; ese número no cuenta. Lo que no entra en el porcentaje son las pantallas y las rutas: se probaron en el navegador. Canvas, el sonido de la sala y la descarga del modelo de rostro tampoco corren en Node, y por eso bajan el promedio.
+
 ## Comandos
 
 Desde `checkin-app/`:
@@ -163,6 +176,7 @@ Desde `checkin-app/`:
 | `npm run dev` | Servidor de desarrollo en http://localhost:3000. |
 | `npm run build` | Genera el cliente de Prisma y compila para producción. |
 | `npm run start` | Levanta el build de producción. |
+| `npm test` | Corre la suite de `src/lib` y el reporte de cobertura (antes/después en `docs/reporte-coverage.md`). |
 | `npm run lint` | Corre ESLint. |
 | `npm run db:push` | Crea o actualiza las tablas y corre el seed. |
 | `npm run db:seed` | Solo el seed de palabras prohibidas. |

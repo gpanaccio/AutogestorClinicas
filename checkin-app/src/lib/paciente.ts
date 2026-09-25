@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
-import { cifrar, cifrarDeterministico } from "@/lib/cifrado";
+import { prisma } from "./prisma";
+import { cifrar, cifrarDeterministico } from "./cifrado";
 
 export async function upsertPacienteCifrado(datos: {
   dni: string;

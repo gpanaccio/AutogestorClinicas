@@ -8,6 +8,7 @@
     "vercel-build": "prisma generate --schema=prisma/schema.prod.prisma && prisma db push --schema=prisma/schema.prod.prisma && prisma db seed && next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "node --env-file-if-exists=.env --import ./scripts/coverage-register.mjs --test --test-concurrency=1 --experimental-test-coverage --test-coverage-include=src/lib/**/*.ts --test-coverage-exclude=**/*.test.ts",
     "db:push": "prisma db push && prisma db seed",
     "db:seed": "prisma db seed",
     "postinstall": "prisma generate"
