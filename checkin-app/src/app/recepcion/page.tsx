@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { accionesDeEstado, etiquetaEstado, type EstadoCola } from "@/lib/cola";
 
@@ -49,9 +49,20 @@ function badgeClass(estado: string) {
 }
 
 export default function RecepcionPage() {
+  const [auth, setAuth] = useState<"loading" | "pin" | "ok">("loading");
+  const [pin, setPin] = useState("");
   const [items, setItems] = useState<Item[]>([]);
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState("");
+
+  async function checkSession() {
+    const response = await fetch("/api/recepcion/session", { cache: "no-store" });
+    setAuth(response.ok ? "ok" : "pin");
+  }
+
+  useEffect(() => {
+    void checkSession();
+  }, []);
 
   async function load() {
     try {
@@ -65,12 +76,35 @@ export default function RecepcionPage() {
   }
 
   useEffect(() => {
+    if (auth !== "ok") return;
     void load();
     const id = window.setInterval(() => {
       if (!busyId) void load();
     }, 4000);
     return () => window.clearInterval(id);
-  }, [busyId]);
+  }, [auth, busyId]);
+
+  async function entrar(event: FormEvent) {
+    event.preventDefault();
+    setError("");
+    const response = await fetch("/api/recepcion/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pin }),
+    });
+    if (!response.ok) {
+      setError("PIN incorrecto.");
+      return;
+    }
+    setPin("");
+    setAuth("ok");
+  }
+
+  async function salir() {
+    await fetch("/api/recepcion/logout", { method: "POST" });
+    setItems([]);
+    setAuth("pin");
+  }
 
   async function cambiarEstado(id: string, estado: EstadoCola) {
     setBusyId(id);
@@ -101,6 +135,44 @@ export default function RecepcionPage() {
   const activos = ordenados.filter((item) => item.estado !== "atendido");
   const atendidos = ordenados.filter((item) => item.estado === "atendido");
 
+  if (auth === "loading") {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-[#F8FAFC] text-slate-500">
+        Cargando...
+      </div>
+    );
+  }
+
+  if (auth === "pin") {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-[#F8FAFC] px-4">
+        <form
+          onSubmit={(event) => void entrar(event)}
+          className="w-full max-w-sm rounded-[28px] bg-white p-8 shadow-[0_20px_50px_rgba(15,23,42,0.08)]"
+        >
+          <p className="text-sm font-medium text-[#2563EB]">Recepción</p>
+          <h1 className="mt-2 text-2xl font-bold text-slate-900">Ingresá el PIN</h1>
+          <p className="mt-2 text-sm text-slate-500">Solo personal de mostrador.</p>
+          <input
+            autoFocus
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            className="mt-6 h-14 w-full rounded-xl border border-slate-200 px-4 text-center text-2xl tracking-[0.4em] outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]"
+            value={pin}
+            onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 8))}
+          />
+          {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+          <button
+            type="submit"
+            className="mt-6 flex h-14 w-full items-center justify-center rounded-2xl bg-[#2563EB] text-base font-semibold text-white"
+          >
+            Entrar
+          </button>
+        </form>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-dvh bg-[#F8FAFC] px-4 py-6 sm:px-8">
       <div className="mx-auto max-w-4xl">
@@ -122,6 +194,9 @@ export default function RecepcionPage() {
             <Link className="text-slate-500 hover:text-[#2563EB]" href="/qr">
               Código QR
             </Link>
+            <button type="button" onClick={() => void salir()} className="text-slate-500 hover:text-red-600">
+              Salir
+            </button>
           </div>
         </div>
 

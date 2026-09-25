@@ -2,11 +2,16 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isEstadoCola, puedeTransicionar } from "@/lib/cola";
 import { formatDni } from "@/lib/dni";
+import { haySesionRecepcion } from "@/lib/recepcion-auth";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  if (!(await haySesionRecepcion())) {
+    return NextResponse.json({ error: "Ingresá el PIN de recepción." }, { status: 401 });
+  }
+
   const { id } = await params;
   const body = (await request.json()) as { estado?: string };
   const siguiente = body.estado ?? "";

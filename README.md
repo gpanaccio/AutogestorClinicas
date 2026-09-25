@@ -18,7 +18,8 @@ Abrí:
 
 - Check-in del paciente: http://localhost:3000
 - Código QR: http://localhost:3000/qr
-- Cola de recepción: http://localhost:3000/recepcion
+- Monitor de sala (TV): http://localhost:3000/sala
+- Cola de recepción: http://localhost:3000/recepcion (PIN `2580`, configurable en `RECEPCION_PIN`)
 
 La cámara pide permiso **recién en el paso 2**. En desktop, Chrome/Edge funcionan; en HTTP local a veces hay que usar `localhost` (no la IP).
 
@@ -33,6 +34,7 @@ No hace falta cuenta de Neon. Usás **GitHub** (ya está) y **Vercel** (gratis, 
 5. En **Settings → Environment Variables** deberían aparecer `POSTGRES_URL` / `DATABASE_URL`. Si solo ves `POSTGRES_URL`, agregá:
    - `DATABASE_URL` = el mismo valor que `POSTGRES_URL`
    - `NEXT_PUBLIC_CENTRO_NOMBRE` = `Centro Médico`
+   - `RECEPCION_PIN` = PIN de 4 dígitos para `/recepcion` (ej. `2580`)
 6. Deploy. Cuando tengas la URL (`https://algo.vercel.app`), agregá `NEXT_PUBLIC_APP_URL` con esa URL y redesplegá para que el QR apunte bien.
 
 En local seguís con SQLite (`npm run dev`). En Vercel el build usa `schema.prod.prisma` (PostgreSQL) solo.
