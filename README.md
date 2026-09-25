@@ -9,7 +9,7 @@ Web app de autogestión para centros médicos. El paciente escanea un QR en la r
 | Check-in del paciente | https://autogestor-clinicas.vercel.app |
 | Código QR para imprimir | https://autogestor-clinicas.vercel.app/qr |
 | Monitor de sala (TV) | https://autogestor-clinicas.vercel.app/sala |
-| Cola de recepción (con PIN) | https://autogestor-clinicas.vercel.app/recepcion |
+| Cola de recepción (con PIN) | https://autogestor-clinicas.vercel.app/recepcion (PIN por defecto 7874)|
 
 Cada push a `main` en GitHub ([gpanaccio/AutogestorClinicas](https://github.com/gpanaccio/AutogestorClinicas)) dispara un deploy automático en Vercel.
 
