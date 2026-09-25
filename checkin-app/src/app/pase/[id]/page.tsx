@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatDni } from "@/lib/dni";
+import { getCentroNombre } from "@/lib/app-url";
 import { PhoneShell } from "@/components/phone-shell";
 import { FinishButton } from "@/components/finish-button";
+import { DownloadComprobanteButton } from "@/components/download-comprobante-button";
 
 export const dynamic = "force-dynamic";
 
@@ -62,6 +64,15 @@ export default async function PasePage({
         </p>
 
         <div className="mt-auto pt-8">
+          <DownloadComprobanteButton
+            centro={getCentroNombre()}
+            nombre={nombreCompleto}
+            dni={formatDni(checkIn.paciente.dni)}
+            codigoTurno={checkIn.codigoTurno}
+            salaEspera={checkIn.salaEspera}
+            fechaHora={checkIn.fechaHora.toISOString()}
+            fotoDataUrl={checkIn.fotoDataUrl}
+          />
           <FinishButton />
         </div>
       </div>
