@@ -21,6 +21,9 @@ export function PhoneShell({
             <Link className="hover:text-[#2563EB]" href="/qr">
               Código QR
             </Link>
+            <Link className="hover:text-[#2563EB]" href="/sala">
+              Monitor sala
+            </Link>
             <Link className="hover:text-[#2563EB]" href="/recepcion">
               Recepción
             </Link>

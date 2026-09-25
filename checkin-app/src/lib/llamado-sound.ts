@@ -21,7 +21,7 @@ function tone(ctx: AudioContext, frequency: number, start: number, duration: num
   oscillator.stop(start + duration + 0.02);
 }
 
-/** Ding-dong corto para anunciar un llamado. Hay que invocarlo en el click. */
+/** Ding-dong corto para anunciar un llamado en el monitor de sala. */
 export async function playLlamadoChime() {
   const ctx = getAudioContext();
   if (ctx.state === "suspended") {

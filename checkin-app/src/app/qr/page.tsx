@@ -28,6 +28,9 @@ export default async function QrPage() {
           <Link className="text-[#2563EB]" href="/">
             Ir al check-in
           </Link>
+          <Link className="text-slate-500" href="/sala">
+            Monitor sala
+          </Link>
           <Link className="text-slate-500" href="/recepcion">
             Ver recepción
           </Link>
