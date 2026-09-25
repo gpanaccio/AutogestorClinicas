@@ -11,8 +11,11 @@ cd checkin-app
 copy .env.example .env
 npm install
 npx prisma db push
+npx prisma db seed
 npm run dev
 ```
+
+`db push` crea la tabla `PalabraProhibida`. El seed carga la lista de insultos (idempotente: se puede repetir). En Vercel pasa lo mismo en cada deploy.
 
 Abrí:
 

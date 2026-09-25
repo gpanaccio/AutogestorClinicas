@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isValidDni, onlyDigits } from "@/lib/dni";
+import { contieneInsulto, listarPalabrasProhibidas, MENSAJE_INSULTO } from "@/lib/lenguaje";
 import { notificarHis } from "@/lib/his";
 import { startOfTodayArgentina } from "@/lib/timezone";
 
@@ -22,6 +23,10 @@ export async function POST(request: Request) {
 
   if (!nombre || !apellido) {
     return NextResponse.json({ error: "Completá nombre y apellido." }, { status: 400 });
+  }
+  const prohibidas = await listarPalabrasProhibidas();
+  if (contieneInsulto(nombre, prohibidas) || contieneInsulto(apellido, prohibidas)) {
+    return NextResponse.json({ error: MENSAJE_INSULTO }, { status: 400 });
   }
   if (!isValidDni(dni)) {
     return NextResponse.json({ error: "El DNI debe tener 7 u 8 dígitos." }, { status: 400 });

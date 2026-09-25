@@ -26,5 +26,11 @@ model CheckIn {
   codigoTurno    String
   salaEspera     String
   centroId       String   @default("centro-medico")
-  hisNotificado  Boolean  @default(false)
+  hisNotificado Boolean  @default(false)
+}
+
+model PalabraProhibida {
+  id       String   @id @default(cuid())
+  palabra  String   @unique
+  creadaEn DateTime @default(now())
 }

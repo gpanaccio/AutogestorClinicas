@@ -1,8 +1,9 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatDni, isValidDni } from "@/lib/dni";
+import { contieneInsulto, MENSAJE_INSULTO } from "@/lib/lenguaje";
 import { saveFiliacion } from "@/lib/filiacion";
 import { PhoneShell, PrimaryButton } from "@/components/phone-shell";
 
@@ -15,6 +16,16 @@ export function WelcomeForm() {
   const [dni, setDni] = useState("");
   const [consentimiento, setConsentimiento] = useState(false);
   const [error, setError] = useState("");
+  const [prohibidas, setProhibidas] = useState<string[]>([]);
+
+  useEffect(() => {
+    void fetch("/api/palabras-prohibidas")
+      .then((response) => response.json())
+      .then((data: { palabras?: string[] }) => {
+        if (Array.isArray(data.palabras)) setProhibidas(data.palabras);
+      })
+      .catch(() => undefined);
+  }, []);
 
   const canContinue = useMemo(
     () => nombre.trim().length > 1 && apellido.trim().length > 1 && isValidDni(dni) && consentimiento,
@@ -25,6 +36,10 @@ export function WelcomeForm() {
     event.preventDefault();
     if (!canContinue) {
       setError("Completá los datos y aceptá el consentimiento para continuar.");
+      return;
+    }
+    if (contieneInsulto(nombre, prohibidas) || contieneInsulto(apellido, prohibidas)) {
+      setError(MENSAJE_INSULTO);
       return;
     }
     saveFiliacion({
