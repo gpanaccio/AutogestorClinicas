@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { accionesDeEstado, etiquetaEstado, type EstadoCola } from "@/lib/cola";
+import { playLlamadoChime } from "@/lib/llamado-sound";
 
 type Item = {
   id: string;
@@ -73,6 +74,11 @@ export default function RecepcionPage() {
   }, [busyId]);
 
   async function cambiarEstado(id: string, estado: EstadoCola) {
+    if (estado === "llamado") {
+      void playLlamadoChime().catch(() => {
+        /* el navegador puede bloquear audio si no hay gesto de usuario */
+      });
+    }
     setBusyId(id);
     setError("");
     const previous = items;
