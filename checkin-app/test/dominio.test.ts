@@ -1,4 +1,8 @@
 import assert from "node:assert/strict";
+
+declare global {
+  var __cookieRecepcion: { name: string; value: string } | undefined;
+}
 import { after, describe, test } from "node:test";
 import { formatDni, isValidDni, onlyDigits } from "../src/lib/dni";
 import {
@@ -240,13 +244,14 @@ describe("PIN de recepción", () => {
     assert.equal(await haySesionRecepcion(), false);
     globalThis.__cookieRecepcion = { name: RECEPCION_COOKIE, value: recepcionToken() };
     assert.equal(await haySesionRecepcion(), true);
-    const previa = process.env.NODE_ENV;
-    process.env.NODE_ENV = "production";
+    const entorno = process.env as { NODE_ENV?: string };
+    const previa = entorno.NODE_ENV;
+    entorno.NODE_ENV = "production";
     assert.equal(cookieSesionOptions().secure, true);
-    process.env.NODE_ENV = "development";
+    entorno.NODE_ENV = "development";
     assert.equal(cookieSesionOptions().secure, false);
     assert.equal(cookieSesionOptions().httpOnly, true);
-    if (previa) process.env.NODE_ENV = previa;
+    entorno.NODE_ENV = previa;
   });
 });
 
